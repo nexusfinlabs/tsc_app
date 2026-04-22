@@ -1,0 +1,27 @@
+[Unit]
+Description=TSC Furnace Monitor — Flask App (multi-user)
+After=network.target tailscaled.service
+Wants=tailscaled.service
+
+[Service]
+Type=simple
+User=tsc
+WorkingDirectory=/home/tsc/tsc_app
+# Option A: gunicorn (recommended for multi-user)
+# pip3 install gunicorn
+# ExecStart=/usr/bin/python3 -m gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 --timeout 120 app:app
+# Option B: Flask threaded (simpler, no extra dep)
+ExecStart=/usr/bin/python3 /home/tsc/tsc_app/app.py
+Restart=always
+RestartSec=5
+Environment=PORT=5000
+Environment=RESEND_API_KEY=re_PJ4SJgLF_KJXVutpAfyoEWsjdpB8ncJfg
+Environment=NOTIFY_TO=alebronlobo81@gmail.com,d.serrano.9080@gmail.com
+Environment=NOTIFY_FROM=TSC Monitor <onboarding@resend.dev>
+Environment=SUPABASE_URL=https://httfohqoikkptywupkrs.supabase.co
+Environment=SUPABASE_ANON_KEY=sb_publishable_RpXnNg8xARuRnsHLve6aUQ_gMJxc1sf
+StandardOutput=append:/home/tsc/tsc_app/app.log
+StandardError=append:/home/tsc/tsc_app/app.log
+
+[Install]
+WantedBy=multi-user.target

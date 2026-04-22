@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TSC Furnace Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{margin:0;font-family:'Segoe UI','Inter',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+    .topbar{background:linear-gradient(135deg,#0f172a,#1e1b4b);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2a2a3e;position:sticky;top:0;z-index:100}
+    .topbar h1{font-size:22px;margin:0;background:linear-gradient(135deg,#22c55e,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .topbar .links{display:flex;align-items:center;gap:4px}
+    .topbar .links a{color:#64748b;text-decoration:none;padding:6px 12px;font-size:14px;border-radius:6px;transition:all .2s}
+    .topbar .links a:hover{color:#e2e8f0;background:rgba(255,255,255,.05)}
+    .topbar .links a.active{color:#22c55e;font-weight:600}
+    .topbar .links .logout{color:#ef4444;margin-left:12px;border:1px solid rgba(239,68,68,.3);border-radius:6px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px;max-width:1100px;margin:0 auto}
+    .card{border-radius:18px;padding:24px;min-height:430px;box-shadow:0 8px 30px rgba(0,0,0,.35);background:#222;border:2px solid #333;position:relative}
+    .card.ok{background:#173b21;border-color:#2bb24c}
+    .card.warning{background:#6f5b00;border-color:#ffd400}
+    .card.waiting_temp{background:#2d2a00;border-color:#f59e0b;}
+    .card.idle{background:#2a2a2a;border-color:#555}
+    .card.error{background:#4a1f1f;border-color:#ff4d4d}
+    .blink{animation:blink 1s infinite}
+    @keyframes blink{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
+    .card-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .title{font-size:30px;font-weight:bold}
+    .traffic-light{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.2);background:#666;box-shadow:0 0 10px rgba(0,0,0,.3)}
+    .traffic-light.idle{background:#777}
+    .traffic-light.ok{background:#22c55e;box-shadow:0 0 18px rgba(34,197,94,.8)}
+    .traffic-light.warning{background:#facc15;box-shadow:0 0 18px rgba(250,204,21,.8)}
+    .traffic-light.error{background:#ef4444;box-shadow:0 0 18px rgba(239,68,68,.8)}
+    .temp{font-size:82px;font-weight:bold;margin:14px 0 6px;line-height:1;color:#22d3ee}
+    .temp-cameras{font-size:32px;font-weight:bold;margin:0 0 10px;line-height:1;color:#fb923c;display:flex;align-items:baseline;gap:8px}
+    .temp-cameras .label{font-size:13px;color:#94a3b8;font-weight:600}
+    .status{font-size:24px;margin:10px 0 18px;font-weight:bold}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+    .info-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px}
+    .info-label{font-size:14px;color:#ddd;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .info-value{font-size:28px;font-weight:bold}
+    .timer{font-size:32px;margin:8px 0 20px;font-weight:bold}
+    .buttons{display:flex;gap:10px;margin-top:16px}
+    button{border:0;border-radius:12px;padding:14px 14px;font-size:18px;font-weight:bold;cursor:pointer;transition:all .15s}
+    .start{background:#22c55e;color:#fff;flex:1}.stop{background:#ef4444;color:#fff;flex:1}
+    .start:hover{background:#16a34a;transform:translateY(-1px)}
+    .stop:hover{background:#dc2626;transform:translateY(-1px)}
+    .footer{text-align:center;padding:20px 24px;color:#bbb;font-size:15px}
+    .tasi-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.15);color:#22c55e;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600}
+    .tasi-badge .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:blink 2s infinite}
+    /* Maintenance card */
+    .maint-card{border-radius:18px;padding:24px;min-height:430px;box-shadow:0 8px 30px rgba(0,0,0,.35);background:linear-gradient(145deg,#1a1a2e,#16213e);border:2px solid #2a2a4e}
+    .maint-title{font-size:22px;font-weight:bold;margin-bottom:20px;color:#94a3b8}
+    .maint-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:all .3s}
+    .maint-item.due{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);animation:blink 2s infinite}
+    .maint-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+    .maint-name{font-size:16px;font-weight:600;flex:1}
+    .maint-counter{text-align:right}
+    .maint-counter .num{font-size:22px;font-weight:bold}
+    .maint-counter .label{font-size:11px;color:#64748b}
+    .maint-due-badge{background:rgba(34,197,94,.2);color:#22c55e;font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px}
+    .maint-progress{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden}
+    .maint-progress-bar{height:100%;border-radius:2px;transition:width .5s}
+    .total-loads{text-align:center;margin-top:16px;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+    .total-loads .val{font-size:28px;font-weight:bold;color:#22c55e}
+    .total-loads .lbl{font-size:12px;color:#64748b}
+
+    /* ── OT / Sub-load styles ─────────────────────── */
+    .ot-section{margin-top:10px}
+    .btn-crear-ot{width:100%;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;padding:14px;font-size:17px;font-weight:700;border:none;border-radius:12px;cursor:pointer;letter-spacing:.5px;transition:all .2s}
+    .btn-crear-ot:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(59,130,246,.4)}
+    .btn-crear-ot:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+    .ot-form{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-top:12px;display:none}
+    .ot-form.visible{display:block}
+
+    .subload-row{display:grid;grid-template-columns:1fr 100px 80px 36px 36px;gap:8px;align-items:center;margin-bottom:8px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;position:relative;transition:all .3s}
+    .subload-row.done-row{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25)}
+    .subload-row.expired{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.3);animation:blink 1.5s infinite}
+    .subload-row select,.subload-row input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:#1a1a2e;color:#fff;font-size:13px;width:100%;box-sizing:border-box}
+    .subload-row select:focus,.subload-row input:focus{outline:none;border-color:#3b82f6}
+    .subload-row .sub-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+
+    .btn-done{width:44px;height:44px;border-radius:10px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#64748b;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .btn-done:hover{border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.1)}
+    .btn-done.checked{background:rgba(34,197,94,.2);border-color:#22c55e;color:#22c55e}
+
+    .btn-add-sub{background:none;border:1px dashed rgba(255,255,255,.2);color:#64748b;padding:8px;border-radius:8px;cursor:pointer;font-size:13px;width:100%;margin-top:4px;transition:all .2s}
+    .btn-add-sub:hover{border-color:#3b82f6;color:#3b82f6}
+    .btn-remove-sub{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+    .subload-row:hover .btn-remove-sub{opacity:1}
+
+    /* Active subloads display (during running) */
+    .active-subloads{margin:12px 0}
+    .active-sub{display:grid;grid-template-columns:1fr 80px 80px 1fr 60px;gap:6px;align-items:center;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-bottom:6px;font-size:13px;transition:all .3s}
+    .active-sub.sub-done{opacity:.5;background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.2)}
+    .active-sub.sub-expired{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.3)}
+    .active-sub .sub-ot{font-weight:700;color:#3b82f6}
+    .active-sub .sub-weight{color:#facc15;font-weight:600}
+    .active-sub .sub-ref{color:#94a3b8}
+    .active-sub .sub-timer{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
+    .active-sub .sub-timer.counting{color:#22c55e}
+    .active-sub .sub-timer.expired{color:#facc15}
+
+    /* Audio control */
+    .audio-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:200;transition:all .2s}
+    .audio-btn:hover{background:rgba(34,197,94,.3);transform:scale(1.1)}
+    .audio-btn.muted{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#ef4444}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>TSC — Monitor de Hornos</h1>
+    <div class="links">
+      <a href="/" class="active">Control</a>
+      <a href="/monitor">Monitor</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/db">Base de Datos</a>
+      <a href="/llm">LLM</a>
+      <a href="/logout" class="logout">Salir</a>
+    </div>
+  </div>
+  <div class="grid">
+    <div id="furnace-card" class="card idle">
+      <div class="card-topbar"><div class="title" id="f-name">Sursulf 2 (Energón)</div><div class="traffic-light idle" id="f-light"></div></div>
+      <div class="temp" id="f-temp">--.-°C</div>
+      <div class="temp-cameras"><span class="label">Cámaras</span> <span id="f-temp-cam">--.-°C</span></div>
+      <div class="status" id="f-status">PARADO</div>
+      <div class="info-grid">
+        <div class="info-box"><div class="info-label">Hora Madrid</div><div class="info-value" id="f-time">--:--:--</div></div>
+        <div class="info-box"><div class="info-label">Tiempo(s) Restante(s)</div><div class="info-value" id="f-remaining">00:00:00</div></div>
+      </div>
+
+      <!-- OT Section -->
+      <div class="ot-section" id="ot-section">
+        <!-- IDLE: Show Crear OT button + form -->
+        <div id="ot-idle">
+          <button class="btn-crear-ot" id="btn-crear-ot" onclick="toggleOTForm()">+ Crear Carga</button>
+          <div class="ot-form" id="ot-form">
+            <div id="subload-list">
+              <!-- Sub-load rows inserted here -->
+            </div>
+            <button class="btn-add-sub" onclick="addSubloadRow()">+ Añadir OT</button>
+            <div class="buttons" style="margin-top:14px">
+              <button class="start" id="btn-start" onclick="startImmediate()">▶ START</button>
+              <button class="start" id="btn-auto" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="startAuto()">⚡ AUTO</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RUNNING: Show active subloads -->
+        <div id="ot-running" style="display:none">
+          <div class="active-subloads" id="active-subloads">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <!-- RESET: Always visible when furnace is running or expired -->
+        <div id="reset-section" style="display:none;margin-top:12px">
+          <button onclick="resetFurnace()" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:12px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">↺ Reset — Volver a estado inicial</button>
+        </div>
+
+        <!-- Modal: Confirmación retirada de carga -->
+        <div id="confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+            <div style="font-size:28px;margin-bottom:12px">⏰</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px" id="confirm-title">¿Retirar carga?</div>
+            <div style="font-size:14px;color:#94a3b8;margin-bottom:20px" id="confirm-msg"></div>
+            <div style="display:flex;gap:12px;justify-content:center">
+              <button id="confirm-yes" onclick="confirmRetire()" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:14px 48px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer">✓ OK — Retirar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal: Ajustar fecha de último control -->
+        <div id="adjust-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+          <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+            <div style="font-size:28px;margin-bottom:12px">📅</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px" id="adjust-title">¿Cuándo fue el último control?</div>
+            <div style="font-size:13px;color:#94a3b8;margin-bottom:16px" id="adjust-task-name"></div>
+            <input type="date" id="adjust-date" style="padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:#0f0f23;color:#fff;font-size:15px;width:100%;box-sizing:border-box;margin-bottom:16px">
+            <div style="display:flex;gap:12px;justify-content:center">
+              <button id="adjust-ok" onclick="submitAdjust()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:12px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">✓ OK</button>
+              <button onclick="closeAdjust()" style="background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.15);padding:12px 32px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="maint-card" id="maint-card">
+      <div class="maint-title">🔧 Calendario de Control <span id="maint-pv" style="font-size:11px;color:#64748b;font-weight:400;margin-left:8px"></span></div>
+      <div id="maint-items">Cargando...</div>
+    
+    </div>
+  </div>
+
+  <!-- ALARMA: Temperature alarm thresholds -->
+  <div style="max-width:1100px;margin:0 auto;padding:0 24px 12px">
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px;background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.03));border:1px solid rgba(239,68,68,.2);border-radius:14px">
+      <span style="font-size:14px;color:#f87171;font-weight:700">🚨 Alarmas</span>
+      <span style="width:1px;height:28px;background:rgba(255,255,255,.12)"></span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:12px;color:#94a3b8;font-weight:600">Sales ≥</label>
+        <input type="number" id="alarm-sales" placeholder="590" style="width:70px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:#1a1a2e;color:#f87171;font-size:14px;font-weight:700;text-align:center">
+        <span style="font-size:12px;color:#64748b">°C</span>
+        <button onclick="saveThreshold('sales')" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✓</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:12px;color:#94a3b8;font-weight:600">Cámaras ≥</label>
+        <input type="number" id="alarm-camaras" placeholder="200" style="width:70px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:#1a1a2e;color:#f87171;font-size:14px;font-weight:700;text-align:center">
+        <span style="font-size:12px;color:#64748b">°C</span>
+        <button onclick="saveThreshold('camaras')" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✓</button>
+      </div>
+      <span style="width:1px;height:28px;background:rgba(255,255,255,.12)"></span>
+      <div id="alarm-status" style="font-size:12px;color:#64748b;font-weight:600">Sin alarma</div>
+      <button onclick="silenceAlarm()" style="background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.15);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">■ Silenciar</button>
+    </div>
+  </div>
+
+  <!-- TRACKER + SET POINT BAR -->
+  <div style="max-width:1100px;margin:0 auto;padding:0 24px 12px">
+    <div style="display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px;background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(34,197,94,.04));border:1px solid rgba(59,130,246,.2);border-radius:14px">
+      <!-- Temp Tracker -->
+      <button id="tracker-btn" onclick="toggleTracker()" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s">📡 Temp Tracker OFF</button>
+      <select id="tracker-interval" onchange="updateTrackerInterval(this.value)" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(99,179,237,.3);background:#1a1a2e;color:#63b3ed;font-size:13px;font-weight:600;cursor:pointer">
+        <option value="30">⚡ 30 seg</option>
+        <option value="60" selected>📊 1 min</option>
+        <option value="120">🕐 2 min</option>
+      </select>
+      <span style="width:1px;height:28px;background:rgba(255,255,255,.12)"></span>
+      <!-- Set Point -->
+      <span style="font-size:13px;color:#94a3b8;font-weight:600">🎯 Set Point:</span>
+      <input type="number" id="setpoint-input" value="" placeholder="ej: 580" style="width:80px;padding:8px 12px;border-radius:8px;border:1px solid rgba(250,204,21,.3);background:#1a1a2e;color:#facc15;font-size:15px;font-weight:700;text-align:center">
+      <span style="font-size:13px;color:#94a3b8">°C</span>
+      <button onclick="setSetPoint()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">OK</button>
+      <span style="width:1px;height:28px;background:rgba(255,255,255,.12)"></span>
+      <!-- Vigilancia display -->
+      <span style="font-size:13px;color:#94a3b8;font-weight:600">🔥 Vigilar:</span>
+      <span id="setpoint-watch" style="font-size:18px;font-weight:800;color:#64748b;min-width:60px;text-align:center">—</span>
+      <span style="font-size:13px;color:#94a3b8">°C</span>
+    </div>
+  </div>
+
+  <!-- Modal: Set Point confirmado -->
+  <div id="setpoint-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:#1a1a2e;border:1px solid rgba(250,204,21,.3);border-radius:16px;padding:28px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <div style="font-size:38px;margin-bottom:12px">🎯</div>
+      <div style="font-size:16px;font-weight:700;color:#facc15;margin-bottom:12px" id="setpoint-modal-msg"></div>
+      <button onclick="document.getElementById('setpoint-modal').style.display='none'" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:12px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">Entendido</button>
+    </div>
+  </div>
+
+
+
+  <div class="footer" id="footer">Loading...</div>
+
+  <!-- Audio control button -->
+  <button class="audio-btn" id="audio-btn" onclick="toggleMute()" title="Activar/Silenciar sonidos">🔇</button>
+
+  <script>
+    let currentFurnace='sulfur_1';
+    let subloadCounter=0;
+    let audioMuted=false;
+    let audioCtx=null;
+    let ringPlayed={};
+    let nextOtBase=null;
+    let nextOtYear=new Date().getFullYear();
+    let currentRingType='alarm_oclock.mp3';
+    let sirenOsc=null;
+    let setPointValue=null;
+    let setPointWatch=null;
+    let tempReachedShown=false;
+    let currentTemp=null;
+    let startupMute=true; // suppress all sounds for first 4s after page load
+    setTimeout(()=>{ startupMute=false; }, 4000);
+
+    // ── Audio ────────────────────────────────────────
+    function getAudioCtx(){
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    // Play ring using WAV file — loud, real audio
+    function playRing(){
+      if(audioMuted||startupMute) return; // suppress on page load
+      const audio=new Audio('/sounds/'+currentRingType);
+      audio.volume=1.0;
+      audio.play().catch(e=>console.warn('Audio play failed:',e));
+    }
+
+    function playSiren(){
+      if(audioMuted) return;
+      if(sirenOsc) return; // already playing
+      const ctx=getAudioCtx();
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.type='sawtooth';
+      osc.frequency.setValueAtTime(440,ctx.currentTime);
+      gain.gain.setValueAtTime(0.2,ctx.currentTime);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start();
+      sirenOsc=osc;
+      // Sweep frequency
+      function sweep(){
+        if(!sirenOsc) return;
+        const t=ctx.currentTime;
+        osc.frequency.linearRampToValueAtTime(880,t+0.5);
+        osc.frequency.linearRampToValueAtTime(440,t+1.0);
+        setTimeout(sweep,1000);
+      }
+      sweep();
+    }
+
+    function stopSiren(){
+      if(sirenOsc){sirenOsc.stop();sirenOsc=null}
+    }
+
+    function toggleMute(){
+      audioMuted=!audioMuted;
+      const btn=document.getElementById('audio-btn');
+      btn.textContent=audioMuted?'🔇':'🔊';
+      btn.classList.toggle('muted',audioMuted);
+      if(audioMuted) stopSiren();
+    }
+
+    // ── Temperature Alarm Thresholds (API-backed) ────────────────
+    let alarmTriggered=false;
+    let alarmSilenced=false;
+    let alarmEventId=null;
+
+    async function saveThreshold(type){
+      const inputId=type==='sales'?'alarm-sales':'alarm-camaras';
+      const val=parseFloat(document.getElementById(inputId).value);
+      if(isNaN(val)){alert('Introduce un valor numérico');return}
+      try{
+        await fetch('/api/alarm/threshold',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:type,threshold:val})});
+        const btn=event.target;btn.textContent='✓ OK';btn.style.color='#fff';btn.style.background='rgba(34,197,94,.4)';
+        setTimeout(()=>{btn.textContent='✓';btn.style.color='#22c55e';btn.style.background='rgba(34,197,94,.15)'},1500);
+      }catch(e){console.error(e)}
+    }
+
+    async function loadAlarmThresholds(){
+      try{
+        const data=await fetch('/api/alarm/thresholds').then(r=>r.json());
+        if(data.sales!==undefined) document.getElementById('alarm-sales').value=data.sales;
+        if(data.camaras!==undefined) document.getElementById('alarm-camaras').value=data.camaras;
+      }catch(e){
+        const s=localStorage.getItem('tsc_alarm_sales');
+        const c=localStorage.getItem('tsc_alarm_camaras');
+        if(s) document.getElementById('alarm-sales').value=s;
+        if(c) document.getElementById('alarm-camaras').value=c;
+      }
+    }
+
+    function checkTempAlarms(tempSales, tempCamaras){
+      const thSales=parseFloat(document.getElementById('alarm-sales').value);
+      const thCamaras=parseFloat(document.getElementById('alarm-camaras').value);
+      const statusEl=document.getElementById('alarm-status');
+      let triggered=false;
+      let msg=[];
+      let triggerType=null, triggerThreshold=0, triggerTemp=0;
+      // Only check if threshold is set and > 0
+      if(!isNaN(thSales) && thSales>0 && tempSales!==null && tempSales>=thSales){
+        triggered=true; msg.push('Sales '+tempSales.toFixed(1)+'°C ≥ '+thSales+'°C');
+        triggerType='sales'; triggerThreshold=thSales; triggerTemp=tempSales;
+      }
+      if(!isNaN(thCamaras) && thCamaras>0 && tempCamaras!==null && tempCamaras>=thCamaras){
+        triggered=true; msg.push('Cámaras '+tempCamaras.toFixed(1)+'°C ≥ '+thCamaras+'°C');
+        if(!triggerType){triggerType='camaras'; triggerThreshold=thCamaras; triggerTemp=tempCamaras;}
+      }
+      if(triggered && !alarmTriggered && !alarmSilenced){
+        // First trigger — sound the siren and record event
+        alarmTriggered=true;
+        alarmSilenced=false;
+        statusEl.innerHTML='<span style="color:#ef4444;font-weight:700">🚨 '+msg.join(' | ')+'</span>';
+        playSiren();
+        fetch('/api/alarm/trigger',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({type:triggerType,threshold:triggerThreshold,temperature:triggerTemp})
+        }).then(r=>r.json()).then(d=>{if(d.event_id)alarmEventId=d.event_id}).catch(e=>console.error(e));
+      }else if(triggered && alarmSilenced){
+        // Silenced but still above threshold — just update text, no siren
+        statusEl.innerHTML='<span style="color:#f59e0b;font-weight:600">🔇 Silenciada — '+msg.join(' | ')+'</span>';
+      }else if(triggered && alarmTriggered){
+        // Already triggering, just update text
+        statusEl.innerHTML='<span style="color:#ef4444;font-weight:700">🚨 '+msg.join(' | ')+'</span>';
+      }else{
+        // Temp dropped below ALL thresholds — fully reset
+        statusEl.innerHTML='<span style="color:#22c55e">✓ OK</span>';
+        if(alarmTriggered || alarmSilenced){
+          stopSiren();
+          alarmTriggered=false;
+          alarmSilenced=false;
+          fetch('/api/alarm/resolve',{method:'POST',headers:{'Content-Type':'application/json'}}).catch(e=>console.error(e));
+          alarmEventId=null;
+        }
+      }
+    }
+
+    function silenceAlarm(){
+      stopSiren();
+      alarmSilenced=true;  // Keep triggered state so it won't re-fire
+      const statusEl=document.getElementById('alarm-status');
+      if(statusEl) statusEl.innerHTML='<span style="color:#f59e0b">🔇 Silenciada</span>';
+      fetch('/api/alarm/silence',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({event_id:alarmEventId})
+      }).catch(e=>console.error(e));
+    }
+
+    // ── Helpers ──────────────────────────────────────
+    function formatSeconds(t){t=Math.max(0,Number(t||0));const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+    function madridTime(){return new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())}
+    function statusText(f){if(f.waiting_for_temp)return'🟡 ESPERANDO TEMPERATURA';if(f.status==='warning')return'AMARILLO • SACAR PIEZAS';if(f.status==='ok')return'VERDE • CONTANDO';if(f.status==='idle')return'PARADO';return'ERROR COM'}
+
+    // ── OT Form ─────────────────────────────────────
+    async function fetchNextOt(){
+      try{
+        const r=await fetch('/api/next-ot').then(r=>r.json());
+        const parts=(r.next_ot||'').split('/');
+        nextOtBase=parseInt(parts[0])||1;
+        nextOtYear=parseInt(parts[1])||new Date().getFullYear();
+      }catch(e){nextOtBase=nextOtBase||1}
+    }
+
+    async function toggleOTForm(){
+      const form=document.getElementById('ot-form');
+      if(!form.classList.contains('visible')){
+        await fetchNextOt();
+        form.classList.add('visible');
+        if(document.getElementById('subload-list').children.length===0) addSubloadRow();
+      }else{
+        form.classList.remove('visible');
+      }
+    }
+
+    function getOtForAllRows(){
+      // Same OT number for all subloads in the same OT
+      return `${nextOtBase}/${nextOtYear}`;
+    }
+
+    function addSubloadRow(){
+      subloadCounter++;
+      const list=document.getElementById('subload-list');
+      const row=document.createElement('div');
+      row.className='subload-row';
+      row.id='sub-'+subloadCounter;
+      row.innerHTML=`
+        <div>
+          <div class="sub-label">Nº OT</div>
+          <input type="text" class="sub-ot" placeholder="Ej: 11/2026" value="">
+        </div>
+        <div>
+          <div class="sub-label">Duración</div>
+          <select class="sub-dur">
+            <option value="0.25" style="color:#facc15">⚡ 15"</option>
+            <option value="0.5" style="color:#facc15">⚡ 30"</option>
+            <option value="1.5" style="color:#facc15">⚡ 90"</option>
+            <option disabled>────────</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min</option>
+            <option value="75">75 min</option>
+            <option value="90">90 min</option>
+            <option value="105">105 min</option>
+            <option value="120" selected>120 min</option>
+            <option value="135">135 min</option>
+            <option value="150">150 min</option>
+            <option value="180">180 min</option>
+            <option value="210">210 min</option>
+            <option value="240">240 min</option>
+          </select>
+        </div>
+        <div>
+          <div class="sub-label">Peso (kg)</div>
+          <input type="text" class="sub-weight" placeholder="350" value="">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn-remove-sub" onclick="removeSubloadRow('sub-${subloadCounter}')" style="position:static;opacity:1;width:32px;height:32px;margin-top:14px">✕</button>
+        </div>
+      `;
+      list.appendChild(row);
+    }
+
+    function removeSubloadRow(id){
+      const el=document.getElementById(id);
+      if(el && document.getElementById('subload-list').children.length > 1) el.remove();
+    }
+
+    function cancelOT(){
+      document.getElementById('ot-form').classList.remove('visible');
+      document.getElementById('subload-list').innerHTML='';
+      subloadCounter=0;
+    }
+
+    // ── Set Point ───────────────────────────────────
+    function setSetPoint(){
+      const v=parseFloat(document.getElementById('setpoint-input').value);
+      if(isNaN(v)||v<100){alert('Introduce un Set Point válido (ej: 580)');return}
+      setPointValue=v;
+      setPointWatch=v-10;
+      tempReachedShown=false;
+      document.getElementById('setpoint-watch').textContent=setPointWatch.toFixed(0);
+      document.getElementById('setpoint-watch').style.color='#facc15';
+      // Show confirmation popup
+      document.getElementById('setpoint-modal-msg').textContent=
+        'Nueva Temperatura para vigilar: '+(setPointWatch).toFixed(0)+'°C ('+v+'°C - 10°C)';
+      document.getElementById('setpoint-modal').style.display='flex';
+    }
+
+    function checkSetPointAlert(temp){
+      if(!setPointWatch||!temp) return;
+      currentTemp=temp;
+      document.getElementById('setpoint-watch').style.color=temp>=setPointWatch?'#22c55e':'#facc15';
+      // Play siren once when threshold reached
+      if(temp>=setPointWatch&&!tempReachedShown){
+        tempReachedShown=true;
+        if(!audioMuted&&!startupMute){
+          const audio=new Audio('/sounds/ring_sirena_corta.wav');
+          audio.volume=1.0;
+          audio.play().catch(e=>console.warn('Audio play failed:',e));
+        }
+      }
+    }
+
+    // ── Multi-Start ─────────────────────────────────
+    async function _doStart(force){
+      const rows=document.querySelectorAll('#subload-list .subload-row');
+      if(rows.length===0) return;
+      const subloads=[];
+      rows.forEach(row=>{
+        subloads.push({
+          duration: parseFloat(row.querySelector('.sub-dur').value),
+          ot_number: row.querySelector('.sub-ot').value || '',
+          weight: row.querySelector('.sub-weight').value || ''
+        });
+      });
+      // Sync set_point to backend before starting
+      const spVal = parseFloat(document.getElementById('setpoint-input').value);
+      if(spVal && spVal >= 100){
+        await fetch('/api/set-point/'+currentFurnace, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({set_point: spVal})
+        });
+      }
+      const res = await fetch('/api/timer/'+currentFurnace+'/start-multi',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({subloads, force_start: force})
+      }).then(r=>r.json());
+      cancelOT();
+      if(res.waiting_for_temp){
+        document.getElementById('setpoint-modal-msg').textContent=
+          `⏳ AUTO: Esperando temp. ${res.current_temp||'?'}°C → ${res.threshold}°C (SP-10°C). El countdown comenzará automáticamente.`;
+        document.getElementById('setpoint-modal').style.display='flex';
+      }
+      refresh();
+    }
+
+    // START: inicia inmediatamente sin esperar temperatura
+    function startImmediate(){ _doStart(true); }
+
+    // AUTO: espera a que la temperatura alcance SP-10°C antes de iniciar
+    function startAuto(){ _doStart(false); }
+
+    // Legacy alias
+    function startMulti(){ startImmediate(); }
+
+    let pendingRetireId=null;
+    let pendingRetireSameGroup=[];  // IDs of same-duration expired OTs to batch-retire
+    let confirmShown={};
+
+    // activeSubs cache for batch retire logic
+    let lastActiveSubs=[];
+
+    function showConfirmRetire(otId, durMin, otNumber, allSubs, isForce=false){
+      if(confirmShown[otId] && !isForce) return;
+      confirmShown[otId]=true;
+      pendingRetireId=otId;
+      // Find all expired OTs with same duration to batch-retire
+      pendingRetireSameGroup=[otId];
+      const groupOTs=[otNumber||'—'];
+      if(allSubs && !isForce){
+        allSubs.forEach(s=>{
+          if(s.id!==otId && !s.done && s.done!==1){
+            const sDur=parseFloat(s.duration_min||s.required_min||120);
+            if(sDur===durMin){
+              const startTs=new Date(s.start_time||s.load_start).getTime();
+              const elapsed=Math.floor((Date.now()-startTs)/1000);
+              const target=Math.round(sDur*60);
+              if(elapsed>=target){
+                pendingRetireSameGroup.push(s.id);
+                groupOTs.push(s.ot_number||'—');
+                confirmShown[s.id]=true;
+              }
+            }
+          }
+        });
+      }
+      const durLabel=durMin<1?Math.round(durMin*60)+' seg':durMin+' min';
+      const otsList=groupOTs.join(', ');
+      document.getElementById('confirm-msg').textContent=
+        isForce ? `¿Forzar parada de OT ${otsList}? (Aún no ha terminado el tiempo)` : `OT(s) ${otsList} (${durLabel}) lista para retirar.`;
+      const m=document.getElementById('confirm-modal');
+      m.style.display='flex';
+    }
+
+    async function confirmRetire(){
+      document.getElementById('confirm-modal').style.display='none';
+      if(pendingRetireSameGroup.length>0){
+        // Mark all same-group OTs as done — real finish time recorded in backend
+        await Promise.all(pendingRetireSameGroup.map(id=>
+          fetch('/api/subload/'+id+'/done',{method:'POST'})
+        ));
+        pendingRetireSameGroup.forEach(id=>{ confirmShown[id]=true; });
+        playRing();
+        refresh();
+      }
+      pendingRetireId=null;
+      pendingRetireSameGroup=[];
+    }
+
+    async function stopLoad(){
+      await fetch('/api/timer/'+currentFurnace+'/stop',{method:'POST'});
+      ringPlayed={};
+      confirmShown={};
+      stopSiren();
+      refresh();
+    }
+
+    async function resetFurnace(){
+      await fetch('/api/timer/'+currentFurnace+'/reset',{method:'POST'});
+      ringPlayed={};
+      confirmShown={};
+      pendingRetireSameGroup=[];
+      stopSiren();
+      refresh();
+    }
+
+    async function markDone(otId, btn){
+      await fetch('/api/subload/'+otId+'/done',{method:'POST'});
+      playRing(); // confirmation chime
+      btn.classList.add('checked');
+      btn.textContent='✓';
+      btn.disabled=true;
+      refresh();
+    }
+
+    // ── Refresh Loop ────────────────────────────────
+    async function refresh(){
+      try{
+        const [res,tasi]=await Promise.all([
+          fetch('/api/status').then(r=>r.json()),
+          fetch('/api/tasi').then(r=>r.json()).catch(()=>({status:'disconnected'}))
+        ]);
+        const f=res.furnaces[0]; if(!f) return;
+        currentFurnace=f.id||f.name;  // use internal ID for API routes
+        const ts=Number(f.target_seconds||0),es=Number(f.elapsed_seconds||0);
+
+        // Update card class
+        const fc=document.getElementById('furnace-card');
+        const cardStatus = f.waiting_for_temp ? 'waiting_temp' : (f.status||'idle');
+        fc.className='card '+cardStatus;
+
+        // Update light
+        const light=document.getElementById('f-light');
+        const lightStatus = f.waiting_for_temp ? 'warning' : (f.status||'idle');
+        light.className='traffic-light '+lightStatus+(f.status==='warning'||f.waiting_for_temp?' blink':'');
+
+        // Update values
+        document.getElementById('f-name').textContent=f.name;
+        document.getElementById('f-temp').textContent=(f.temperature===null?'--.-':Number(f.temperature).toFixed(1))+'°C';
+        // Cámaras from TASI CH4
+        document.getElementById('f-temp-cam').textContent=(tasi.CH4!==null&&tasi.CH4!==undefined?tasi.CH4.toFixed(1)+'°C':'--.-°C');
+        document.getElementById('f-status').textContent=statusText(f);
+        document.getElementById('f-time').textContent=madridTime();
+
+        // Check temperature alarms
+        const salesTemp=f.temperature!==null?Number(f.temperature):null;
+        const camarasTemp=(tasi.CH4!==null&&tasi.CH4!==undefined)?Number(tasi.CH4):null;
+        checkTempAlarms(salesTemp, camarasTemp);
+
+        // Show waiting for temp info
+        if(f.waiting_for_temp && f.check_set_point){
+          const threshold = f.check_set_point - 10;
+          const tempNow = f.temperature !== null ? Number(f.temperature).toFixed(1) : '?';
+          document.getElementById('f-remaining').innerHTML=
+            '<div style="font-size:16px;color:#f59e0b;line-height:1.4">⏳ '+tempNow+'°C → '+threshold+'°C</div>'+
+            '<div style="font-size:11px;color:#94a3b8">Esperando SP-10°C</div>';
+        }
+
+        // Check Set Point alert
+        if(f.temperature!==null) checkSetPointAlert(Number(f.temperature));
+
+        // Show/hide OT sections
+        const isRunning = f.timer_running || f.waiting_for_temp;
+        const isWarning = f.status==='warning';
+        document.getElementById('ot-idle').style.display=isRunning?'none':'block';
+        document.getElementById('ot-running').style.display=isRunning?'block':'none';
+        document.getElementById('btn-crear-ot').disabled=isRunning;
+        // Show Reset button whenever furnace is not idle
+        const resetSec=document.getElementById('reset-section');
+        if(resetSec) resetSec.style.display=(isRunning||isWarning)?'block':'none';
+
+        // AUTO button: disable if temp already >= SP-10°C (use START instead)
+        const btnAuto=document.getElementById('btn-auto');
+        if(btnAuto){
+          const sp=f.set_point||570;
+          const threshold=sp-10;
+          const tempNow=f.temperature!==null?Number(f.temperature):null;
+          const alreadyHot=tempNow!==null&&tempNow>=threshold;
+          btnAuto.disabled=alreadyHot;
+          btnAuto.style.opacity=alreadyHot?'0.35':'1';
+          btnAuto.title=alreadyHot
+            ?`Temp ${tempNow?.toFixed(1)}°C ≥ ${threshold}°C — usa START directamente`
+            :`AUTO: espera a ${threshold}°C (SP ${sp}°C - 10°C)`;
+        }
+
+        if(isRunning){
+          // Fetch active subloads
+          const subs=await fetch('/api/subloads/'+currentFurnace).then(r=>r.json()).catch(()=>[]);
+          const container=document.getElementById('active-subloads');
+          let minRemaining=Infinity;
+
+          if(subs.length>0){
+            let countdowns=[];
+            container.innerHTML=subs.map(s=>{
+              const startTs=new Date(s.start_time||s.load_start).getTime();
+              const elapsed=Math.floor((Date.now()-startTs)/1000);
+              const durMin=parseFloat(s.duration_min)||parseFloat(s.required_min)||120;
+              const target=Math.round(durMin*60);
+              const remaining=Math.max(0,target-elapsed);
+              const isExpired=remaining<=0 && !s.done;
+              const isDone=s.done===1;
+
+              if(!isDone) countdowns.push({remaining,isExpired,ref:s.ot_number||'?'});
+              if(remaining<minRemaining && !isDone) minRemaining=remaining;
+
+              // Show popup when a subload expires — DB save happens on "Retirar" click
+              if(isExpired && !isDone && !ringPlayed[s.id]){
+                ringPlayed[s.id]=true;
+                const _subs=subs;
+                setTimeout(()=>{
+                  playRing();
+                  showConfirmRetire(s.id, durMin, s.ot_number, _subs);
+                },300);
+              }
+
+              const rowClass='active-sub'+(isDone?' sub-done':'')+(isExpired?' sub-expired':'');
+              const durLabel=durMin<1?Math.round(durMin*60)+'s':durMin+'min';
+
+              return '<div class="'+rowClass+'">'
+                +'<span class="sub-ot">'+(s.ot_number||'\u2014')+'</span>'
+                +'<span class="sub-weight">'+(s.weight||'\u2014')+' kg</span>'
+                +'<span class="sub-timer '+(isDone?'':'counting')+' '+(isExpired&&!isDone?'expired':'')+'">'+(isDone?'\u2713 Retirado':formatSeconds(remaining))+'</span>' + (!isDone ? ' <button onclick="showConfirmRetire(\''+s.id+'\', '+durMin+', \''+(s.ot_number||'')+'\', null, true)" style="margin-left:8px;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.5);cursor:pointer;font-size:11px">Parar</button>' : '')
+                +'<span style="font-size:11px;color:#64748b">'+durLabel+'</span>'
+                +'</div>';
+            }).join('');
+
+            // Update remaining time display — show only UNIQUE countdowns
+            if(countdowns.length>0){
+              // Deduplicate by remaining seconds (same duration = 1 display)
+              const seen=new Set();
+              const unique=countdowns.filter(c=>{
+                const key=c.remaining;
+                if(seen.has(key))return false;
+                seen.add(key);return true;
+              });
+              const fSize=unique.length>2?'18px':'22px';
+              document.getElementById('f-remaining').innerHTML=unique.map(c=>{
+                const color=c.isExpired?'#facc15':'#22c55e';
+                return '<div style="font-size:'+fSize+';color:'+color+';line-height:1.4">'+formatSeconds(c.remaining)+'</div>';
+              }).join('');
+            }else{
+              document.getElementById('f-remaining').textContent='\u2713 Todo retirado';
+            }
+          }else{
+            // Fallback: old-style single timer
+            const rs=Math.max(0,ts-es);
+            document.getElementById('f-remaining').textContent=formatSeconds(rs);
+            container.innerHTML='<p style="color:#64748b;font-size:13px">Sin subcargas activas</p>';
+          }
+        }else{
+          document.getElementById('f-remaining').textContent='00:00:00';
+        }
+
+        // TASI footer
+        const tasiOk=tasi.status==='reading';
+        document.getElementById('footer').innerHTML=`<span class="tasi-badge"><span class="dot" style="background:${tasiOk?'#22c55e':'#ef4444'}"></span> TASI TA612C: ${tasiOk?'Conectado':'Desconectado'}</span> &nbsp;|&nbsp; ${madridTime()} &nbsp;|&nbsp; Sales: ${tasi.CH3!==null&&tasi.CH3!==undefined?tasi.CH3.toFixed(1)+'°C':'--'}  Cámaras: ${tasi.CH4!==null&&tasi.CH4!==undefined?tasi.CH4.toFixed(1)+'°C':'--'}`;
+      }catch(e){console.error(e)}
+    }
+
+    async function resetTask(taskName){
+      const pv = document.getElementById('maint-pv')?.textContent || 'PV';
+      if(!confirm(`↺ Reset "${taskName}"\n\nEl contador volverá a 0 y empezará a contar +1 por cada día que las sales alcancen el Punto de Vigilancia.\n\n¿Confirmar?`)) return;
+      const r = await fetch('/api/maintenance/reset',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({task:taskName})
+      });
+      const d = await r.json();
+      if(d.ok) loadMaintenance();
+    }
+
+    async function loadMaintenance(){
+      try{
+        const m = await fetch('/api/maintenance').then(r=>r.json());
+        const container = document.getElementById('maint-items');
+        container.innerHTML = m.tasks.map(t => {
+          const pct = t.every > 0 ? Math.round((t.loads_since / t.every) * 100) : 0;
+          const isDue = t.due;
+          return `<div class="maint-item${isDue?' due':''}">
+            <div class="maint-dot" style="background:${t.color}"></div>
+            <div style="flex:1">
+              <div class="maint-name">${t.name}${isDue?' <span class="maint-due-badge">¡HOY TOCA!</span>':''}</div>
+              ${t.every > 0 ? `<div class="maint-progress"><div class="maint-progress-bar" style="width:${pct}%;background:${t.color}"></div></div>` : ''}
+            </div>
+            <div class="maint-counter">
+              ${t.every > 0 ? `<div class="num" style="color:${t.color}">${t.loads_since}/${t.every}</div><div class="label">Faltan ${t.remaining}</div>` : '<div class="num" style="color:#e2e8f0">—</div>'}
+            </div>
+            <button onclick="resetTask('${t.name}')" title="Pone el contador a 0 y empieza a contar desde hoy" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(239,68,68,.2)';this.style.color='#ef4444'" onmouseout="this.style.background='rgba(239,68,68,.08)';this.style.color='#f87171'">↺ Reset</button>
+          </div>`;
+        }).join('');
+        // Show PV threshold
+        const pv = m.tasks[0]?.pv_threshold;
+        const card = document.getElementById('maint-card');
+        const pvEl = document.getElementById('maint-pv');
+        if(pvEl && pv) pvEl.textContent = `PV: ${pv}°C (SP-10)`;
+      }catch(e){console.error(e)}
+    }
+
+    // ── Temp Tracker ─────────────────────────────────
+    let trackerEnabled=false;
+
+    async function syncTrackerUI(){
+      try{
+        const state=await fetch('/api/temp-tracker').then(r=>r.json());
+        trackerEnabled=state.enabled;
+        const btn=document.getElementById('tracker-btn');
+        if(trackerEnabled){
+          btn.textContent='📡 Temp Tracker ON';
+          btn.style.background='rgba(34,197,94,.15)';
+          btn.style.color='#22c55e';
+          btn.style.borderColor='rgba(34,197,94,.3)';
+        }else{
+          btn.textContent='📡 Temp Tracker OFF';
+          btn.style.background='rgba(239,68,68,.12)';
+          btn.style.color='#ef4444';
+          btn.style.borderColor='rgba(239,68,68,.25)';
+        }
+        document.getElementById('tracker-interval').value=String(state.interval_s);
+      }catch(e){}
+    }
+
+    async function toggleTracker(){
+      trackerEnabled=!trackerEnabled;
+      await fetch('/api/temp-tracker',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({enabled:trackerEnabled})
+      });
+      syncTrackerUI();
+    }
+
+    async function updateTrackerInterval(val){
+      await fetch('/api/temp-tracker',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({interval_s:parseInt(val)})
+      });
+      syncTrackerUI();
+    }
+
+    // ── Init ────────────────────────────────────────────
+    async function init(){
+      // Load persisted set-point from backend
+      try{
+        const sp=await fetch('/api/set-point/'+currentFurnace).then(r=>r.json());
+        if(sp.set_point){
+          document.getElementById('setpoint-input').value=sp.set_point;
+          setPointValue=sp.set_point;
+          setPointWatch=sp.set_point-10;
+          document.getElementById('setpoint-watch').textContent=setPointWatch.toFixed(0);
+          document.getElementById('setpoint-watch').style.color='#facc15';
+          // If temp already above threshold on load, mark alert as already shown
+          const st=await fetch('/api/status').then(r=>r.json()).catch(()=>null);
+          if(st&&st.furnaces){
+            const fArr=Array.isArray(st.furnaces)?st.furnaces:Object.values(st.furnaces);
+            const fData=fArr.find ? fArr.find(x=>x.id===currentFurnace) : null;
+            if(fData&&fData.temperature!==null&&Number(fData.temperature)>=setPointWatch) tempReachedShown=true;
+          }
+        }
+      }catch(e){console.warn('Could not load set-point:',e)}
+      // Pre-populate ringPlayed for already-expired subloads (avoid ring on reload)
+      try{
+        const subs=await fetch('/api/subloads/'+currentFurnace).then(r=>r.json()).catch(()=>[]);
+        const nowTs=Date.now();
+        subs.forEach(s=>{
+          const startMs=s.start_time?new Date(s.start_time).getTime():null;
+          const durMs=(parseFloat(s.duration_min)||parseFloat(s.required_min)||120)*60000;
+          if(startMs&&(nowTs-startMs)>=durMs&&!s.done) ringPlayed[s.id]=true;
+        });
+      }catch(e){}
+      refresh();
+      setInterval(refresh,1000);
+      loadMaintenance();
+      setInterval(loadMaintenance,30000);
+      syncTrackerUI();
+      loadAlarmThresholds();
+    }
+    init();
+  </script>
+</body>
+</html>

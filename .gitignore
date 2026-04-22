@@ -1,0 +1,47 @@
+# Secretos
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+.secrets/
+
+# Credenciales
+google_creds.json
+service-account*.json
+*credentials*.json
+
+# Bases de datos (se regeneran)
+*.db
+*.sqlite*
+data/*.db
+data/*.sqlite*
+
+# Logs
+*.log
+logs/
+app.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+*.egg-info/
+
+# Backups locales
+*.bak
+*.bak_*
+*.bak.*
+app.py.bak*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

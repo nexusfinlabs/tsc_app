@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title id="page-title">Vehicle Detail — BLACKBOX Custom 4x4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/crm/static/styles.css" />
+  <style>
+    /* ── Vehicle Detail Page ─────────────────────────── */
+    .vd-hero {
+      position: relative;
+      height: 520px;
+      overflow: hidden;
+      margin-top: 56px;
+    }
+    .vd-hero__img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .vd-hero__overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 70%);
+    }
+    .vd-hero__title {
+      position: absolute;
+      bottom: 2.5rem; left: 0; right: 0;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    }
+
+    /* ── Main layout ──────────────────────────────────── */
+    .vd-body {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .vd-body { grid-template-columns: 1fr; }
+      .vd-hero { height: 320px; }
+    }
+
+    /* ── General Information ──────────────────────────── */
+    .vd-info h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+    .vd-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .vd-table tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .vd-table td {
+      padding: 0.85rem 0.5rem;
+      color: var(--text-secondary);
+    }
+    .vd-table td:first-child {
+      color: var(--text-primary);
+      font-weight: 600;
+      width: 50%;
+    }
+    .vd-table td strong { color: var(--text-primary); }
+
+    /* ── Extras ───────────────────────────────────────── */
+    .vd-extras {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .vd-extra-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .vd-extra-item::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────── */
+    .vd-sidebar { position: sticky; top: 72px; }
+    .vd-quote-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 100px;
+      padding: 1.1rem 2rem;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      letter-spacing: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition);
+      margin-bottom: 1.5rem;
+    }
+    .vd-quote-btn:hover {
+      background: var(--accent-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(200,162,78,0.35);
+    }
+    .vd-quick-stats {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .vd-quick-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .vd-quick-stat:last-child { border-bottom: none; }
+    .vd-quick-stat__left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .vd-quick-stat__icon {
+      width: 36px; height: 36px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .vd-quick-stat__label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .vd-quick-stat__val {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .vd-sidebar-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .vd-sidebar-actions .btn {
+      justify-content: center;
+      padding: 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    /* ── Image Gallery ────────────────────────────────── */
+    .vd-gallery-section {
+      margin-top: 3rem;
+    }
+    .vd-gallery-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+    .vd-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .vd-gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .vd-gallery-item {
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 4/3;
+    }
+    .vd-gallery-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+    .vd-gallery-item:hover img { transform: scale(1.05); }
+
+    /* ── Lightbox ─────────────────────────────────────── */
+    .lightbox {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox__img {
+      max-width: 90vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: var(--radius);
+    }
+    .lightbox__close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; font-size: 1.5rem;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .lightbox__close:hover { background: rgba(255,255,255,0.2); }
+    .lightbox__nav {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; font-size: 1.5rem;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lightbox__nav:hover { background: rgba(200,162,78,0.4); }
+    .lightbox__prev { left: 1.5rem; }
+    .lightbox__next { right: 4rem; }
+
+    /* ── Back link ────────────────────────────────────── */
+    .vd-breadcrumb {
+      padding: 1rem 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 1200px; margin: 0 auto;
+    }
+    .vd-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .vd-breadcrumb a:hover { text-decoration: underline; }
+
+    /* Loading state */
+    .vd-loading {
+      text-align: center;
+      padding: 6rem 2rem;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" id="top">
+    <div class="wrap">
+      <a href="/crm" class="logo">BLACK<span>BOX</span></a>
+      <nav class="nav" id="main-nav">
+        <a href="/crm#inventory">Inventory</a>
+        <a href="/crm#services">Services</a>
+        <a href="/crm#about">About</a>
+        <a href="https://api.whatsapp.com/send/?phone=50684527966&text=Hey%2C+I+am+on+the+website.+I+have+an+inquiry+for+a+vehicle&type=phone_number&app_absent=0" class="btn-wa" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+      </nav>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- Loading state -->
+  <div id="vd-app">
+    <div class="vd-loading">Loading vehicle...</div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox__close" id="lb-close">✕</button>
+    <button class="lightbox__nav lightbox__prev" id="lb-prev">‹</button>
+    <img class="lightbox__img" id="lb-img" src="" alt="Gallery" />
+    <button class="lightbox__nav lightbox__next" id="lb-next">›</button>
+  </div>
+
+  <a href="https://api.whatsapp.com/send/?phone=50684527966&text=Hey%2C+I+am+on+the+website.+I+have+an+inquiry&type=phone_number&app_absent=0" class="wa-fab" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <script>
+  (function() {
+    var slug = window.location.pathname.replace('/crm/vehicle/', '').replace(/\/$/, '');
+    var lightboxImgs = [];
+    var lbIndex = 0;
+    var lb = document.getElementById('lightbox');
+    var lbImg = document.getElementById('lb-img');
+
+    function openLightbox(imgs, idx) {
+      lightboxImgs = imgs;
+      lbIndex = idx;
+      lbImg.src = imgs[idx];
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('lb-close').addEventListener('click', closeLightbox);
+    document.getElementById('lb-prev').addEventListener('click', function() {
+      lbIndex = (lbIndex - 1 + lightboxImgs.length) % lightboxImgs.length;
+      lbImg.src = lightboxImgs[lbIndex];
+    });
+    document.getElementById('lb-next').addEventListener('click', function() {
+      lbIndex = (lbIndex + 1) % lightboxImgs.length;
+      lbImg.src = lightboxImgs[lbIndex];
+    });
+    lb.addEventListener('click', function(e) { if (e.target === lb) closeLightbox(); });
+    document.addEventListener('keydown', function(e) {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') { lbIndex = (lbIndex - 1 + lightboxImgs.length) % lightboxImgs.length; lbImg.src = lightboxImgs[lbIndex]; }
+      if (e.key === 'ArrowRight') { lbIndex = (lbIndex + 1) % lightboxImgs.length; lbImg.src = lightboxImgs[lbIndex]; }
+    });
+
+    fetch('/crm/static/inventory.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var vehicles = data.inventory || [];
+        var v = null;
+        for (var i = 0; i < vehicles.length; i++) {
+          if (vehicles[i].slug === slug) { v = vehicles[i]; break; }
+        }
+        if (!v) {
+          document.getElementById('vd-app').innerHTML = '<div class="vd-loading"><h2 style="color:var(--accent)">Vehicle not found</h2><p><a href="/crm" style="color:var(--accent)">← Back to inventory</a></p></div>';
+          return;
+        }
+
+        // Update page title
+        document.title = v.year + ' ' + v.make + ' ' + v.model + ' — BLACKBOX Custom 4x4';
+
+        var heroSrc = v.hero_image || '/crm/static/img/lc79.png';
+        var gallery = v.gallery && v.gallery.length ? v.gallery : [heroSrc];
+        var waMsg = encodeURIComponent('Hi, I am interested in the ' + v.year + ' ' + v.make + ' ' + v.model + ' (' + (v.code || '') + '). Is it still available?');
+        var waUrl = 'https://api.whatsapp.com/send/?phone=50684527966&text=' + waMsg + '&type=phone_number&app_absent=0';
+
+        var extrasHtml = '';
+        if (v.extras && v.extras.length) {
+          extrasHtml = '<div class="vd-extras">' + v.extras.map(function(e) {
+            return '<div class="vd-extra-item">' + e + '</div>';
+          }).join('') + '</div>';
+        }
+
+        var galleryHtml = gallery.map(function(src, idx) {
+          return '<div class="vd-gallery-item" data-idx="' + idx + '"><img src="' + src + '" alt="Gallery photo ' + (idx+1) + '" loading="lazy" /></div>';
+        }).join('');
+
+        var html =
+          '<div class="vd-hero">' +
+            '<img class="vd-hero__img" src="' + heroSrc + '" alt="' + v.year + ' ' + v.make + ' ' + v.model + '" />' +
+            '<div class="vd-hero__overlay"></div>' +
+            '<h1 class="vd-hero__title">' + v.year + ' ' + v.make.toUpperCase() + ' ' + v.model.toUpperCase() + '</h1>' +
+          '</div>' +
+          '<div class="vd-breadcrumb"><a href="/crm">← All Cars</a> / ' + v.year + ' ' + v.make + ' ' + v.model + '</div>' +
+          '<div class="vd-body">' +
+            '<div class="vd-info">' +
+              '<h2>General Information</h2>' +
+              '<table class="vd-table"><tbody>' +
+                '<tr><td><strong>Style:</strong> ' + (v.variant || v.model) + '</td><td><strong>Year:</strong> ' + v.year + '</td></tr>' +
+                '<tr><td><strong>Color:</strong> ' + (v.color || '—') + '</td><td><strong>Passengers:</strong> ' + (v.passengers || '—') + '</td></tr>' +
+                '<tr><td><strong>Transmission:</strong> ' + (v.transmission || '—') + '</td><td><strong>Traction:</strong> ' + (v.traction || '4x4') + '</td></tr>' +
+                '<tr><td><strong>KM:</strong> ' + (v.km || '—') + '</td><td><strong>Location:</strong> ' + (v.location || 'BLACKBOX TAMARINDO') + '</td></tr>' +
+                '<tr><td colspan="2"><strong>Review:</strong> ' + (v.variant || v.model) + '</td></tr>' +
+              '</tbody></table>' +
+              extrasHtml +
+              '<div class="vd-gallery-section">' +
+                '<h2>Image Gallery</h2>' +
+                '<div class="vd-gallery-grid" id="gallery-grid">' + galleryHtml + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="vd-sidebar">' +
+              '<a href="' + waUrl + '" class="vd-quote-btn" target="_blank">QUOTE NOW ✦</a>' +
+              '<div class="vd-quick-stats">' +
+                '<div class="vd-quick-stat"><div class="vd-quick-stat__left"><div class="vd-quick-stat__icon">👥</div><span class="vd-quick-stat__label">Passengers</span></div><span class="vd-quick-stat__val">' + (v.passengers || '—') + '</span></div>' +
+                '<div class="vd-quick-stat"><div class="vd-quick-stat__left"><div class="vd-quick-stat__icon">⚙️</div><span class="vd-quick-stat__label">Transmission</span></div><span class="vd-quick-stat__val">' + (v.transmission || '—') + '</span></div>' +
+                '<div class="vd-quick-stat"><div class="vd-quick-stat__left"><div class="vd-quick-stat__icon">✅</div><span class="vd-quick-stat__label">Code</span></div><span class="vd-quick-stat__val">' + (v.code || '—') + '</span></div>' +
+              '</div>' +
+              '<div class="vd-sidebar-actions">' +
+                '<a href="/crm" class="btn btn-outline">All Cars</a>' +
+                '<a href="' + waUrl + '" class="btn btn-wa" target="_blank">' +
+                  '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> WhatsApp' +
+                '</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        document.getElementById('vd-app').innerHTML = html;
+
+        // Attach lightbox to gallery
+        var galleryGrid = document.getElementById('gallery-grid');
+        if (galleryGrid) {
+          galleryGrid.addEventListener('click', function(e) {
+            var item = e.target.closest('.vd-gallery-item');
+            if (!item) return;
+            var idx = parseInt(item.getAttribute('data-idx'), 10);
+            openLightbox(gallery, idx);
+          });
+        }
+
+        // Mobile nav
+        var toggle = document.getElementById('nav-toggle');
+        var nav = document.getElementById('main-nav');
+        if (toggle && nav) {
+          toggle.addEventListener('click', function() { nav.classList.toggle('is-open'); });
+        }
+      })
+      .catch(function() {
+        document.getElementById('vd-app').innerHTML = '<div class="vd-loading">Error loading vehicle data. <a href="/crm" style="color:var(--accent)">← Go back</a></div>';
+      });
+  })();
+  </script>
+</body>
+</html>

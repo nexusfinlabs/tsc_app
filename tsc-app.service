@@ -1,0 +1,16 @@
+[Unit]
+Description=TSC Furnace Monitor App
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/tsc/tsc_app
+Environment=PORT=5000
+ExecStart=/usr/bin/python3.12 /home/tsc/tsc_app/app.py
+Restart=always
+RestartSec=3
+StandardOutput=append:/tmp/tsc_app.log
+StandardError=append:/tmp/tsc_app.log
+
+[Install]
+WantedBy=default.target

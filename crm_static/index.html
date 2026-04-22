@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLACKBOX Custom 4x4 — Premium Off-Road Vehicles</title>
+  <meta name="description" content="Premium custom 4x4 vehicles for sale. Land Cruiser, Defender, 4Runner. Costa Rica's #1 off-road builder. Over 393 vehicles delivered." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/crm/static/styles.css" />
+</head>
+<body>
+
+  <header class="site-header" id="top">
+    <div class="wrap">
+      <a href="#top" class="logo">BLACK<span>BOX</span></a>
+      <nav class="nav" id="main-nav">
+        <a href="#inventory">Inventory</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="https://api.whatsapp.com/send/?phone=50684527966&text=Hey%2C+I+am+on+the+website.+I+have+an+inquiry+for+a+vehicle&type=phone_number&app_absent=0" class="btn-wa" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+      </nav>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">COSTA RICA'S #1 OFF-ROAD BUILDER</p>
+        <h1>JOIN THE <span class="accent">ADVENTURE</span></h1>
+        <p class="hero-lead">Premium custom 4x4 vehicles. Sourced, built, and delivered worldwide.<br>Over <strong>393+ vehicles</strong> on the road.</p>
+        <div class="hero-actions">
+          <a href="#inventory" class="btn btn-primary">View Inventory</a>
+          <a href="https://api.whatsapp.com/send/?phone=50684527966&text=I+want+to+be+a+BLACK+BOX+client&type=phone_number&app_absent=0" class="btn btn-outline" target="_blank">Become a Client</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-bar">
+      <div class="wrap stats-grid">
+        <div class="stat"><span class="stat-num" id="stat-vehicles">393+</span><span class="stat-label">Vehicles Delivered</span></div>
+        <div class="stat"><span class="stat-num">19</span><span class="stat-label">In Stock Now</span></div>
+        <div class="stat"><span class="stat-num">2</span><span class="stat-label">Showrooms</span></div>
+        <div class="stat"><span class="stat-num">12</span><span class="stat-label">Premium Services</span></div>
+      </div>
+    </section>
+
+    <section id="inventory" class="inventory-section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>INVENTORY</h2>
+          <p>These vehicles are sourced and built for each unique Black Box client</p>
+        </div>
+        <div class="filter-bar" id="filter-bar">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="Toyota">Toyota</button>
+          <button class="filter-btn" data-filter="Land Rover">Land Rover</button>
+          <button class="filter-btn" data-filter="Jeep">Jeep</button>
+          <button class="filter-btn" data-filter="Other">Other</button>
+        </div>
+        <div class="vehicle-grid" id="vehicle-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="services-section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>SERVICES</h2>
+          <p>Exclusive services reserved for Black Box clientele</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon">🔧</div>
+            <h3>Signature Series Builds</h3>
+            <p>Custom colors, configurations, and premium upgrades tailored to your vision.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">🛡️</div>
+            <h3>Graphite Underbody Protection</h3>
+            <p>Shield your chassis and bushings from corrosion, noise, and wear.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">✨</div>
+            <h3>Ceramic Coating & Polish</h3>
+            <p>Deep gloss and long-lasting protection for your rig's beauty.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">📡</div>
+            <h3>GPS Tracking & Security</h3>
+            <p>24/7 satellite tracking. Smart alerts and real-time monitoring.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">🔩</div>
+            <h3>4x4 Accessories</h3>
+            <p>World-class accessories installed to Black Box standards. ARB official dealer.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">✈️</div>
+            <h3>Concierge Pick-Up</h3>
+            <p>Your rig detailed and serviced, delivered to the airport ready when you land.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about-section">
+      <div class="wrap about-grid">
+        <div class="about-text">
+          <h2>ABOUT <span class="accent">BLACKBOX</span></h2>
+          <p>We understand the difficulties of acquiring a vehicle in Costa Rica. As the leading industry expert in Guanacaste, our primary goal is to provide our clients with the best buying experience by offering exceptional inventory selection and personalized service.</p>
+          <p>BlackBox is a one stop shop, handling everything from sourcing the perfect vehicle to installing your 4×4 accessories. Our team of certified experts provide full service vehicle maintenance, ensuring a seamless experience from start to finish.</p>
+          <div class="about-contact">
+            <a href="tel:+50684527966" class="btn btn-outline">📞 +506 8452 7966</a>
+            <a href="mailto:j.stipanov@blackboxcustom4x4.com" class="btn btn-outline">✉️ Email Us</a>
+          </div>
+        </div>
+        <div class="about-locations">
+          <div class="location-card">
+            <h3>Main Shop</h3>
+            <p>Tamarindo, Costa Rica</p>
+          </div>
+          <div class="location-card">
+            <h3>Showroom</h3>
+            <p>Nosara, Costa Rica</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-strip">
+      <div class="wrap">
+        <h2>READY FOR YOUR <span class="accent">ADVENTURE</span>?</h2>
+        <p>Contact us now to find your perfect rig.</p>
+        <a href="https://api.whatsapp.com/send/?phone=50684527966&text=Hey%2C+I+am+interested+in+a+vehicle&type=phone_number&app_absent=0" class="btn btn-primary btn-lg" target="_blank">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp Us Now
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="logo">BLACK<span>BOX</span></div>
+      <p>Main Shop, Tamarindo · Showroom, Nosara · Costa Rica</p>
+      <p>©<span id="yr"></span> BLACKBOX Custom 4x4. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <a href="https://api.whatsapp.com/send/?phone=50684527966&text=Hey%2C+I+am+on+the+website.+I+have+an+inquiry&type=phone_number&app_absent=0" class="wa-fab" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <script src="/crm/static/config.js"></script>
+  <script src="/crm/static/app.js"></script>
+  <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>
