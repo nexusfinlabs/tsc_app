@@ -100,10 +100,64 @@
     .active-sub .sub-timer.expired{color:#facc15}
 
     /* Audio control */
-    .audio-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:200;transition:all .2s}
-    .audio-btn:hover{background:rgba(34,197,94,.3);transform:scale(1.1)}
-    .audio-btn.muted{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#ef4444}
-  </style>
+  
+/* ====== RESPONSIVE MÓVIL (<=768px) ====== */
+@media (max-width: 768px) {
+  /* Grid a una columna */
+  .grid { grid-template-columns: 1fr !important; padding: 12px !important; gap: 12px !important; }
+
+  /* Reducir padding general en contenedores */
+  [style*="padding:0 24px"] { padding: 0 12px !important; }
+  [style*="padding: 0 24px"] { padding: 0 12px !important; }
+  [style*="padding:24px"] { padding: 14px !important; }
+  [style*="padding: 24px"] { padding: 14px !important; }
+  [style*="padding:28px"] { padding: 16px !important; }
+  [style*="padding: 28px"] { padding: 16px !important; }
+
+  /* Contenedores con max-width:1100px → ocupan 100% */
+  [style*="max-width:1100px"] { max-width: 100% !important; }
+  [style*="max-width: 1100px"] { max-width: 100% !important; }
+
+  /* Inputs type=number más grandes (evita zoom iOS al enfocar) */
+  input[type="number"], input[type="text"], input[type="password"] {
+    font-size: 16px !important;
+  }
+  input[id^="alarm-"], input[id^="setpoint-"] {
+    width: 90px !important;
+  }
+
+  /* Modales a anchura razonable */
+  [style*="max-width:420px"] { max-width: 94% !important; }
+  [style*="max-width: 420px"] { max-width: 94% !important; }
+
+  /* Headers con flex se apilan en columna */
+  header, .topbar, .actions-bar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Fuentes un pelín más pequeñas en títulos */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 16px !important; }
+
+  /* Botones y acciones grandes ocupan ancho completo en móvil */
+  button { min-height: 40px; }
+
+  /* Tablas (si hubiera) con scroll horizontal */
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+
+  /* Audio button más pequeño */
+}
+
+/* ====== RESPONSIVE MÓVIL MUY PEQUEÑO (<=400px) ====== */
+@media (max-width: 400px) {
+  .grid { padding: 8px !important; gap: 8px !important; }
+  [style*="padding:24px"], [style*="padding: 24px"] { padding: 10px !important; }
+  [style*="padding:28px"], [style*="padding: 28px"] { padding: 12px !important; }
+  h1 { font-size: 18px !important; }
+}
+
+</style>
 </head>
 <body>
   <div class="topbar">
@@ -252,12 +306,10 @@
   <div class="footer" id="footer">Loading...</div>
 
   <!-- Audio control button -->
-  <button class="audio-btn" id="audio-btn" onclick="toggleMute()" title="Activar/Silenciar sonidos">🔇</button>
-
-  <script>
+<script>
     let currentFurnace='sulfur_1';
     let subloadCounter=0;
-    let audioMuted=false;
+    let audioMuted = false; // legacy, no-op
     let audioCtx=null;
     let ringPlayed={};
     let nextOtBase=null;
@@ -268,56 +320,41 @@
     let setPointWatch=null;
     let tempReachedShown=false;
     let currentTemp=null;
-    let startupMute=true; // suppress all sounds for first 4s after page load
+    let startupMute = false; // legacy, no-op // suppress all sounds for first 4s after page load
     setTimeout(()=>{ startupMute=false; }, 4000);
 
-    // ── Audio ────────────────────────────────────────
-    function getAudioCtx(){
-      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      return audioCtx;
-    }
-
-    // Play ring using WAV file — loud, real audio
-    function playRing(){
-      if(audioMuted||startupMute) return; // suppress on page load
-      const audio=new Audio('/sounds/'+currentRingType);
-      audio.volume=1.0;
-      audio.play().catch(e=>console.warn('Audio play failed:',e));
-    }
-
-    function playSiren(){
-      if(audioMuted) return;
-      if(sirenOsc) return; // already playing
-      const ctx=getAudioCtx();
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
-      osc.type='sawtooth';
-      osc.frequency.setValueAtTime(440,ctx.currentTime);
-      gain.gain.setValueAtTime(0.2,ctx.currentTime);
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.start();
-      sirenOsc=osc;
-      // Sweep frequency
-      function sweep(){
-        if(!sirenOsc) return;
-        const t=ctx.currentTime;
-        osc.frequency.linearRampToValueAtTime(880,t+0.5);
-        osc.frequency.linearRampToValueAtTime(440,t+1.0);
-        setTimeout(sweep,1000);
-      }
-      sweep();
-    }
-
-    function stopSiren(){
-      if(sirenOsc){sirenOsc.stop();sirenOsc=null}
-    }
-
-    function toggleMute(){
-      audioMuted=!audioMuted;
-      const btn=document.getElementById('audio-btn');
-      btn.textContent=audioMuted?'🔇':'🔊';
-      btn.classList.toggle('muted',audioMuted);
-      if(audioMuted) stopSiren();
+    // -- Audio simplificado (sin boton mute, anti-solapamiento) --
+    const audioManager = {
+      current: null,
+      flags: {},  // {loadId_tempReached: true, loadId_timerDone: true}
+      startupMute: true,
+      play(file, flagKey) {
+        if (this.startupMute) return;
+        if (flagKey && this.flags[flagKey]) return;  // ya sono para esta carga
+        // Si hay algo sonando, no solapar
+        if (this.current && !this.current.paused && !this.current.ended) {
+          console.log('[audio] skip - already playing');
+          return;
+        }
+        try {
+          this.current = new Audio('/sounds/' + file);
+          this.current.volume = 1.0;
+          this.current.play().catch(e => console.warn('[audio] play failed:', e));
+          if (flagKey) this.flags[flagKey] = true;
+        } catch (e) {
+          console.warn('[audio] error:', e);
+        }
+      },
+      resetLoad(loadId) {
+        delete this.flags[loadId + '_tempReached'];
+        delete this.flags[loadId + '_timerDone'];
+      },
+      resetAll() { this.flags = {}; }
+    };
+    setTimeout(() => { audioManager.startupMute = false; }, 4000);
+    // Compat: mantener playRing como alias para no romper llamadas existentes
+    function playRing() {
+      audioManager.play('alarm_oclock.mp3', null);  // sin flagKey = siempre suena (timer zero)
     }
 
     // ── Temperature Alarm Thresholds (API-backed) ────────────────
@@ -510,11 +547,7 @@
       // Play siren once when threshold reached
       if(temp>=setPointWatch&&!tempReachedShown){
         tempReachedShown=true;
-        if(!audioMuted&&!startupMute){
-          const audio=new Audio('/sounds/ring_sirena_corta.wav');
-          audio.volume=1.0;
-          audio.play().catch(e=>console.warn('Audio play failed:',e));
-        }
+        audioManager.play('ring_campana.wav', 'tempReached_' + (currentFurnace||'x'));
       }
     }
 
