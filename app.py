@@ -13,7 +13,6 @@ except ImportError:
     MADRID_TZ = timezone(timedelta(hours=2))
 from flask import Flask, request, jsonify, redirect, session, render_template_string, send_from_directory
 from dotenv import load_dotenv
-from page_restaurantes import RESTAURANTES_HTML
 
 load_dotenv()
 
@@ -976,9 +975,8 @@ def page_crm():
             return _Response(f.read(), mimetype='text/html')
     return _Response("<h1>CRM not found</h1>", mimetype='text/html', status=404)
 
-@app.route("/restaurantes")
-def page_restaurantes():
-    return _Response(RESTAURANTES_HTML, mimetype='text/html')
+# /restaurantes y /restaurants los sirve Tailscale Serve directamente a puerto 5057
+# (ver PORTS.md). El furnace ya no intercepta esa ruta.
 
 # ─── /medical → redirect to Streamlit on port 8443 (full WebSocket support) ──
 @app.route("/medical", defaults={"path": ""})
